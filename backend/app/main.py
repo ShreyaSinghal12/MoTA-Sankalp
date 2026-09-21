@@ -3,13 +3,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from app.core.config import settings
 from app.api.v1 import router
+from app.db.session import engine
+from app.db.base import Base
 import logging
 
-# Configure logging
 logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
 
-# Create FastAPI app
+Base.metadata.create_all(bind=engine)
+
 app = FastAPI(
     title="MoTA-SANKALP",
     description="Scheme Administration, Network & Knowledge Automated Lifecycle Platform",
@@ -19,7 +21,6 @@ app = FastAPI(
     openapi_url="/openapi.json"
 )
 
-# Add middleware
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1"])
 app.add_middleware(
     CORSMiddleware,
@@ -28,7 +29,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-# Include routers
+
 app.include_router(router.router, prefix="/api/v1")
 
 @app.get("/")
