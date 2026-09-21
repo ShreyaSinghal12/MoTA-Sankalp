@@ -1,3 +1,4 @@
+from app.models.applicant import Applicant, CategoryEnum, GenderEnum
 from app.models.scheme import SchemeConfig
 from app.models.user import User, RoleEnum
 from app.models.applicant import Applicant, CategoryEnum, GenderEnum
