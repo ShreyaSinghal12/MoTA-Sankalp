@@ -1,0 +1,40 @@
+# DEMO / PROTOTYPE VALUES - configurable, NOT official MoTA policy figures.
+scheme_id: NOS
+name: National Overseas Scholarship for ST Students
+level: Masters / Ph.D / Post-doc abroad
+demo_values: true
+eligibility_rules:
+  - id: CATEGORY_ST
+    field: category
+    operator: in
+    value: [ST]
+    description: Applicant must belong to a Scheduled Tribe
+  - id: INCOME_LIMIT
+    field: annual_income
+    operator: lte
+    value: 600000
+    description: Annual family income must not exceed the scheme ceiling
+  - id: MIN_MARKS
+    field: marks_percentage
+    operator: gte
+    value: 60
+    description: Minimum marks in qualifying exam
+  - id: AGE_LIMIT
+    field: age
+    operator: between
+    value: [18, 35]
+    description: Age must be within the permitted range
+mandatory_documents:
+  - ST_CERTIFICATE
+  - INCOME_CERTIFICATE
+  - MARKSHEET
+  - ADMISSION_LETTER
+ranking_weights:
+  marks: 0.5
+  income: 0.3
+  pvtg: 0.2
+female_quota_percent: 30
+pvtg_priority: true
+sanction:
+  mode: claimed_fee_capped
+  cap: 4000000

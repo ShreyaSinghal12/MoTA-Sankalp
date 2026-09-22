@@ -1,0 +1,40 @@
+# DEMO / PROTOTYPE VALUES - configurable, NOT official MoTA policy figures.
+# Edit this file to change eligibility without touching code.
+scheme_id: NFST
+name: National Fellowship for Scheduled Tribe Students
+level: Doctoral (M.Phil / Ph.D) in India
+demo_values: true
+eligibility_rules:
+  - id: CATEGORY_ST
+    field: category
+    operator: in
+    value: [ST]
+    description: Applicant must belong to a Scheduled Tribe
+  - id: INCOME_LIMIT
+    field: annual_income
+    operator: lte
+    value: 600000
+    description: Annual family income must not exceed the scheme ceiling
+  - id: MIN_MARKS
+    field: marks_percentage
+    operator: gte
+    value: 55
+    description: Minimum marks in qualifying post-graduate exam
+  - id: AGE_LIMIT
+    field: age
+    operator: between
+    value: [21, 35]
+    description: Age must be within the permitted range
+mandatory_documents:
+  - ST_CERTIFICATE
+  - INCOME_CERTIFICATE
+  - MARKSHEET
+ranking_weights:
+  marks: 0.6
+  income: 0.3
+  pvtg: 0.1
+female_quota_percent: 30
+pvtg_priority: true
+sanction:
+  mode: fixed
+  amount: 444000   # e.g. 12 months fellowship + contingency (demo)

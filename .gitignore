@@ -1,41 +1,33 @@
 # Python
 __pycache__/
 *.pyc
-venv/
 .venv/
+venv/
+.pytest_cache/
 
-# Secrets
-.env
+# Runtime data (regenerated on startup)
+backend/mota_sankalp.db
+backend/uploads/*
+!backend/uploads/.gitkeep
+backend/generated/*
+!backend/generated/.gitkeep
+backend/models/*.pt
+backend/models/*.onnx
 
-# Databases
-*.db
-*.sqlite
-*.sqlite3
-
-# Uploads / generated files
-uploads/
-generated/
-backend/uploads/
-backend/generated/
-
-# ML model files
+# YOLO
+training/yolo/raw/
+training/yolo/datasets/
+training/yolo/runs/
+training/yolo/preview/
+training/yolo/dataset_*.yaml
 *.pt
-*.pth
-*.onnx
-*.joblib
-*.pkl
 
 # Frontend
-node_modules/
 frontend/node_modules/
-dist/
 frontend/dist/
 
-# IDE / OS
-.vscode/
-.idea/
+# OS / IDE
 .DS_Store
 Thumbs.db
-
-# Logs
-*.log
+.vscode/
+.idea/
