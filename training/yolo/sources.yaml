@@ -1,0 +1,40 @@
+# Real-data sources for the MoTA-SANKALP document detector.
+# Run  python training/yolo/prepare_dataset.py --inspect  first: it prints the class names
+# each source actually contains, so you can fix class_map before building.
+#
+# class_map: source class name (or numeric id) -> target class
+#            "*" maps every source class to one target
+#            "identity" keeps names that already match the target classes
+# stages:    which dataset builds include the source (base = public data, finetune = public + your own)
+# repeat:    oversample a source (use for your own small annotated set)
+
+target_classes: [official_seal, signature, qr_code, income_field, st_certificate_field]
+
+sources:
+  - key: ul_signature            # 178 real scanned/photographed documents, 1 class
+    type: url
+    url: https://github.com/ultralytics/assets/releases/download/v0.0.0/signature.zip
+    class_map: {signature: signature}
+    stages: [base, finetune]
+
+  - key: kaggle_qr               # real photos of QR codes, YOLO labels
+    type: kaggle
+    slug: hamidl/yoloqrlabeled
+    class_map: {"*": qr_code}
+    stages: [base, finetune]
+
+  - key: kaggle_stamps           # documents with labelled stamp bounding boxes
+    type: kaggle
+    slug: aravindnagarajan/stamp-data
+    class_map: {"*": official_seal}
+    stages: [base, finetune]
+
+  # Your own annotated Indian certificates (ST / income / marksheets), exported from
+  # LabelImg or CVAT in YOLO format with the 5 target class names. This is the ONLY source
+  # of income_field / st_certificate_field boxes - no public dataset has them.
+  - key: own_certificates
+    type: local
+    path: raw/own_certificates
+    class_map: identity
+    stages: [finetune]
+    repeat: 3

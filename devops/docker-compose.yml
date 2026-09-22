@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  postgresql:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: mota_user
+      POSTGRES_PASSWORD: mota_password
+      POSTGRES_DB: mota_sankalp
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql://mota_user:mota_password@postgresql:5432/mota_sankalp
+      JWT_SECRET_KEY: your-secret-key-change-this
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgresql
+    volumes:
+      - ./backend:/app
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+
+networks:
+  default:
+    driver: bridge

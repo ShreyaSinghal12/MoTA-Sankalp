@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mota-backend
+  labels:
+    app: mota-sankalp
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: mota-backend
+  template:
+    metadata:
+      labels:
+        app: mota-backend
+    spec:
+      containers:
+      - name: backend
+        image: mota-sankalp-backend:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: mota-secrets
+              key: database-url
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mota-backend-service
+spec:
+  selector:
+    app: mota-backend
+  type: LoadBalancer
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000

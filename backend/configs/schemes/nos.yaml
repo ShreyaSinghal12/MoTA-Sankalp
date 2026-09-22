@@ -1,82 +1,40 @@
+# DEMO / PROTOTYPE VALUES - configurable, NOT official MoTA policy figures.
 scheme_id: NOS
-scheme_name: National Overseas Scholarship
-description: Scholarship for ST students pursuing overseas higher education
-version: "1.0"
-
+name: National Overseas Scholarship for ST Students
+level: Masters / Ph.D / Post-doc abroad
+demo_values: true
 eligibility_rules:
-  - rule_id: R101
-    name: Category Check
-    condition: applicant.category == "ST"
-    weight: 100
-    description: Applicant must belong to Scheduled Tribe category
-
-  - rule_id: R102
-    name: Age Limit
-    condition: applicant.age <= 35
-    weight: 80
-    description: Applicant age must not exceed 35 years
-
-  - rule_id: R103
-    name: Annual Income Limit
-    condition: applicant.annual_income <= 500000
-    weight: 90
-    description: Annual family income must not exceed 5 lakhs
-
-  - rule_id: R104
-    name: Academic Merit
-    condition: applicant.cgpa >= 3.0
-    weight: 95
-    description: CGPA/Percentage must be at least 3.0/4.0 or equivalent
-
-  - rule_id: R105
-    name: Overseas University Admission
-    condition: applicant.overseas_admission_letter_received == True
-    weight: 100
-    description: Must have confirmed admission from foreign university
-
-required_documents:
-  - doc_type: AADHAAR
-    mandatory: true
-    description: Aadhaar Card (government ID)
-
-  - doc_type: INCOME_CERTIFICATE
-    mandatory: true
-    description: Income Certificate from Tehsildar (not older than 1 year)
-
-  - doc_type: CASTE_CERTIFICATE
-    mandatory: true
-    description: ST Caste Certificate from Revenue Officer
-
-  - doc_type: MARK_SHEET
-    mandatory: true
-    description: Latest mark sheet with CGPA/Percentage
-
-  - doc_type: OVERSEAS_ADMISSION_LETTER
-    mandatory: true
-    description: Admission letter from foreign university (scanned)
-
-  - doc_type: LANGUAGE_PROFICIENCY
-    mandatory: true
-    description: IELTS/TOEFL/PTE score certificate
-
-fraud_checks:
-  - check_id: F101
-    name: Duplicate Application Check
-    description: Check if applicant has already applied in current financial year
-    severity: HIGH
-
-  - check_id: F102
-    name: University Verification
-    description: Verify overseas university admission through official channels
-    severity: CRITICAL
-
-  - check_id: F103
-    name: Document Forgery Detection
-    description: Verify authenticity of foreign admission letter and language test scores
-    severity: CRITICAL
-
-allocation:
-  total_sanctioned_amount: 50000000
-  per_applicant_annual: 500000
-  financial_year_start: "2024-04-01"
-  max_study_duration_years: 4
+  - id: CATEGORY_ST
+    field: category
+    operator: in
+    value: [ST]
+    description: Applicant must belong to a Scheduled Tribe
+  - id: INCOME_LIMIT
+    field: annual_income
+    operator: lte
+    value: 600000
+    description: Annual family income must not exceed the scheme ceiling
+  - id: MIN_MARKS
+    field: marks_percentage
+    operator: gte
+    value: 60
+    description: Minimum marks in qualifying exam
+  - id: AGE_LIMIT
+    field: age
+    operator: between
+    value: [18, 35]
+    description: Age must be within the permitted range
+mandatory_documents:
+  - ST_CERTIFICATE
+  - INCOME_CERTIFICATE
+  - MARKSHEET
+  - ADMISSION_LETTER
+ranking_weights:
+  marks: 0.5
+  income: 0.3
+  pvtg: 0.2
+female_quota_percent: 30
+pvtg_priority: true
+sanction:
+  mode: claimed_fee_capped
+  cap: 4000000

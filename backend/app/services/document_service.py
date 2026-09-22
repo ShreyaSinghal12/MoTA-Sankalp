@@ -1,85 +1,88 @@
-import os
+"""Document storage, field extraction and per-document AI processing."""
+import re
+import uuid
 from pathlib import Path
-from typing import Optional, Tuple
-from fastapi import UploadFile
-from datetime import datetime
 
-class DocumentService:
-    UPLOAD_DIR = Path(__file__).parent.parent.parent / "uploads"
-    ALLOWED_TYPES = {
-        "AADHAAR": ["pdf", "jpg", "jpeg", "png"],
-        "INCOME_CERTIFICATE": ["pdf", "jpg", "jpeg", "png"],
-        "CASTE_CERTIFICATE": ["pdf", "jpg", "jpeg", "png"],
-        "MARK_SHEET": ["pdf", "jpg", "jpeg", "png"],
-        "OVERSEAS_ADMISSION_LETTER": ["pdf", "jpg", "jpeg", "png"],
-        "LANGUAGE_PROFICIENCY": ["pdf", "jpg", "jpeg", "png"]
-    }
-    
-    MAX_FILE_SIZE = 5 * 1024 * 1024
-    
-    @staticmethod
-    def validate_document_type(doc_type: str) -> bool:
-        return doc_type in DocumentService.ALLOWED_TYPES
-    
-    @staticmethod
-    def validate_file_extension(filename: str, doc_type: str) -> bool:
-        ext = filename.split(".")[-1].lower()
-        return ext in DocumentService.ALLOWED_TYPES.get(doc_type, [])
-    
-    @staticmethod
-    async def save_document(
-        file: UploadFile,
-        doc_type: str,
-        applicant_id: int,
-        application_id: int
-    ) -> Tuple[bool, str, Optional[str]]:
-        if not DocumentService.validate_document_type(doc_type):
-            return False, f"Invalid document type: {doc_type}", None
-        
-        if not DocumentService.validate_file_extension(file.filename, doc_type):
-            return False, f"Invalid file extension for {doc_type}", None
-        
-        content = await file.read()
-        if len(content) > DocumentService.MAX_FILE_SIZE:
-            return False, f"File size exceeds {DocumentService.MAX_FILE_SIZE / 1024 / 1024}MB limit", None
-        
-        app_dir = DocumentService.UPLOAD_DIR / f"app_{application_id}"
-        app_dir.mkdir(parents=True, exist_ok=True)
-        
-        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-        filename = f"{applicant_id}_{doc_type}_{timestamp}.{file.filename.split('.')[-1]}"
-        file_path = app_dir / filename
-        
-        with open(file_path, "wb") as f:
-            f.write(content)
-        
-        return True, "Document uploaded successfully", str(file_path)
-    
-    @staticmethod
-    def get_application_documents(application_id: int) -> list:
-        app_dir = DocumentService.UPLOAD_DIR / f"app_{application_id}"
-        if not app_dir.exists():
-            return []
-        
-        documents = []
-        for file in app_dir.iterdir():
-            if file.is_file():
-                documents.append({
-                    "file_name": file.name,
-                    "file_size": file.stat().st_size,
-                    "file_path": str(file),
-                    "uploaded_at": datetime.fromtimestamp(file.stat().st_mtime).isoformat()
-                })
-        
-        return documents
-    
-    @staticmethod
-    def delete_document(file_path: str) -> Tuple[bool, str]:
-        try:
-            path = Path(file_path)
-            if path.exists():
-                path.unlink()
-                return True, "Document deleted successfully"
-            return False, "Document not found"
-        except Exception as e:
-            return False, f"Error deleting document: {str(e)}"
+from fastapi import HTTPException, UploadFile
+
+from app.core.config import settings
+from app.ml import detector_service, duplicate_service, ocr_service
+
+DOC_TYPES = {"ST_CERTIFICATE", "INCOME_CERTIFICATE", "MARKSHEET", "ADMISSION_LETTER", "ID_PROOF", "OTHER"}
+CONTENT_TYPES = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".pdf": "application/pdf"}
+
+
+async def save_upload(application_id: int, doc_type: str, file: UploadFile) -> dict:
+    doc_type = (doc_type or "OTHER").upper()
+    if doc_type not in DOC_TYPES:
+        raise HTTPException(400, f"doc_type must be one of {sorted(DOC_TYPES)}")
+    ext = Path(file.filename or "").suffix.lower()
+    if ext not in settings.ALLOWED_EXTENSIONS:
+        raise HTTPException(400, f"File type {ext or '?'} not allowed. Allowed: {sorted(settings.ALLOWED_EXTENSIONS)}")
+    data = await file.read()
+    if len(data) == 0:
+        raise HTTPException(400, "Empty file")
+    if len(data) > settings.MAX_UPLOAD_BYTES:
+        raise HTTPException(400, "File exceeds 5 MB limit")
+    folder = settings.UPLOAD_DIR / str(application_id)
+    folder.mkdir(parents=True, exist_ok=True)
+    safe_name = f"{doc_type.lower()}_{uuid.uuid4().hex[:8]}{ext}"
+    path = folder / safe_name
+    path.write_bytes(data)
+    return {"doc_type": doc_type, "filename": file.filename, "file_path": str(path),
+            "content_type": CONTENT_TYPES.get(ext, "application/octet-stream"), "size_bytes": len(data)}
+
+
+def _num(s: str) -> float | None:
+    s = re.sub(r"[^\d.]", "", s or "")
+    try:
+        return float(s) if s else None
+    except ValueError:
+        return None
+
+
+def extract_fields(text: str) -> dict:
+    t = text or ""
+    fields = {}
+    m = re.search(r"(?:name(?: of (?:applicant|candidate|student))?|naam)\s*[:\-]\s*([A-Za-z .]+)", t, re.I)
+    if m:
+        fields["name"] = re.sub(r"\s+", " ", m.group(1)).strip(" .")
+    m = re.search(r"annual\s+(?:family\s+)?income[^\d\n]*([\d,]+(?:\.\d+)?)", t, re.I)
+    if m:
+        fields["annual_income"] = _num(m.group(1))
+    m = re.search(r"(?:certificate|cert\.?|serial|roll)\s*(?:no\.?|number)\s*[:\-]?\s*([A-Z0-9/\-]+)", t, re.I)
+    if m:
+        fields["certificate_number"] = m.group(1).strip()
+    m = re.search(r"category\s*[:\-]\s*([A-Za-z ()]+)", t, re.I)
+    if m:
+        fields["category"] = m.group(1).strip()
+    elif re.search(r"scheduled\s+tribe", t, re.I):
+        fields["category"] = "ST"
+    m = re.search(r"\b(\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4})\b", t)
+    if m:
+        fields["date"] = m.group(1)
+    m = re.search(r"(?:percentage|aggregate|marks)\s*[:\-]?\s*(\d{1,3}(?:\.\d+)?)\s*%?", t, re.I)
+    if m:
+        fields["marks_percentage"] = _num(m.group(1))
+    return fields
+
+
+def process_document(doc, other_docs: list[dict]) -> dict:
+    """Runs OCR -> field extraction -> visual detection -> pHash on one Document row (mutates it)."""
+    ocr = ocr_service.extract_text(doc.file_path)
+    fields = extract_fields(ocr["raw_text"])
+    detection = detector_service.detect(doc.file_path, ocr["raw_text"])
+    phash = duplicate_service.compute_phash(doc.file_path) if not doc.file_path.lower().endswith(".pdf") else None
+    # compare only against documents that already existed before this one (earlier submissions)
+    earlier = [o for o in other_docs if o["document_id"] < doc.id]
+    dup = duplicate_service.find_matches(phash, earlier) if phash else {"checked": 0, "nearest": [], "possible_duplicate": False}
+
+    doc.ocr_text = ocr["raw_text"]
+    doc.ocr_confidence = ocr["confidence"]
+    doc.ocr_engine = ocr["engine"]
+    doc.extracted_fields = fields
+    doc.detection = detection
+    doc.phash = phash
+    doc.processed = True
+    return {"document_id": doc.id, "doc_type": doc.doc_type, "ocr": ocr, "fields": fields,
+            "detection": detection, "phash": phash, "duplicate_check": dup}

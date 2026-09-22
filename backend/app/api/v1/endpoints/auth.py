@@ -1,38 +1,32 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from app.db.session import get_db
-from app.schemas.auth import LoginRequest, TokenResponse, UserResponse
-from app.services.auth import AuthService
-from app.dependencies import get_current_user
-from app.models.user import User
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+from app.core.security import hash_password, create_access_token, verify_password
 
-router = APIRouter(tags=["auth"])
+router = APIRouter(prefix="/auth", tags=["auth"])
 
-@router.post("/login", response_model=TokenResponse)
-async def login(
-    request: LoginRequest,
-    db: Session = Depends(get_db)
-):
-    user = AuthService.authenticate_user(db, request.email, request.password)
-    
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password"
-        )
-    
-    access_token = AuthService.create_access_token_for_user(user)
-    
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "user_id": user.id,
-        "email": user.email,
-        "role": user.role
-    }
+class LoginRequest(BaseModel):
+    email: str
+    password: str
 
-@router.get("/me", response_model=UserResponse)
-async def get_current_user_info(
-    current_user: User = Depends(get_current_user)
-):
-    return current_user
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+USERS_DB = {
+    "admin@mota.gov.in": {"hashed": hash_password("admin123"), "role": "ADMIN"},
+    "officer@mota.gov.in": {"hashed": hash_password("officer123"), "role": "SCRUTINY_OFFICER"},
+}
+
+@router.post("/login", response_model=LoginResponse)
+async def login(req: LoginRequest):
+    if req.email not in USERS_DB:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    user = USERS_DB[req.email]
+    if not verify_password(req.password, user["hashed"]):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    token = create_access_token({"sub": req.email, "role": user["role"]})
+    return {"access_token": token}
+
+@router.get("/me")
+async def get_me(current_user = None):
+    return {"email": current_user}

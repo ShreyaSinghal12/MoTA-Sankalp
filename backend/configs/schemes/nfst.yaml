@@ -1,62 +1,40 @@
+# DEMO / PROTOTYPE VALUES - configurable, NOT official MoTA policy figures.
+# Edit this file to change eligibility without touching code.
 scheme_id: NFST
-scheme_name: National Fellowship for Scheduled Tribe Students
-description: Fellowship scheme for ST students pursuing higher education
-version: "1.0"
-
+name: National Fellowship for Scheduled Tribe Students
+level: Doctoral (M.Phil / Ph.D) in India
+demo_values: true
 eligibility_rules:
-  - rule_id: R001
-    name: Category Check
-    condition: applicant.category == "ST"
-    weight: 100
-    description: Applicant must belong to Scheduled Tribe category
-
-  - rule_id: R002
-    name: Age Limit
-    condition: applicant.age <= 25
-    weight: 80
-    description: Applicant age must not exceed 25 years
-
-  - rule_id: R003
-    name: Annual Income Limit
-    condition: applicant.annual_income <= 250000
-    weight: 90
-    description: Annual family income must not exceed 2.5 lakhs
-
-  - rule_id: R004
-    name: Educational Qualification
-    condition: applicant.qualification in ["B.Tech", "M.Tech", "PhD", "B.Sc", "M.Sc", "B.Com", "M.Com", "BA", "MA"]
-    weight: 85
-    description: Must be pursuing eligible higher education qualification
-
-required_documents:
-  - doc_type: AADHAAR
-    mandatory: true
-    description: Aadhaar Card (government ID)
-
-  - doc_type: INCOME_CERTIFICATE
-    mandatory: true
-    description: Income Certificate from Tehsildar (not older than 1 year)
-
-  - doc_type: CASTE_CERTIFICATE
-    mandatory: true
-    description: ST Caste Certificate from Revenue Officer
-
-  - doc_type: MARK_SHEET
-    mandatory: true
-    description: Latest semester/year mark sheet or transcript
-
-fraud_checks:
-  - check_id: F001
-    name: Duplicate Application Check
-    description: Check if applicant has already applied in current financial year
-    severity: HIGH
-
-  - check_id: F002
-    name: Document Authenticity Check
-    description: Verify authenticity of caste certificate via state records
-    severity: CRITICAL
-
-allocation:
-  total_sanctioned_amount: 10000000
-  per_applicant_annual: 25000
-  financial_year_start: "2024-04-01"
+  - id: CATEGORY_ST
+    field: category
+    operator: in
+    value: [ST]
+    description: Applicant must belong to a Scheduled Tribe
+  - id: INCOME_LIMIT
+    field: annual_income
+    operator: lte
+    value: 600000
+    description: Annual family income must not exceed the scheme ceiling
+  - id: MIN_MARKS
+    field: marks_percentage
+    operator: gte
+    value: 55
+    description: Minimum marks in qualifying post-graduate exam
+  - id: AGE_LIMIT
+    field: age
+    operator: between
+    value: [21, 35]
+    description: Age must be within the permitted range
+mandatory_documents:
+  - ST_CERTIFICATE
+  - INCOME_CERTIFICATE
+  - MARKSHEET
+ranking_weights:
+  marks: 0.6
+  income: 0.3
+  pvtg: 0.1
+female_quota_percent: 30
+pvtg_priority: true
+sanction:
+  mode: fixed
+  amount: 444000   # e.g. 12 months fellowship + contingency (demo)

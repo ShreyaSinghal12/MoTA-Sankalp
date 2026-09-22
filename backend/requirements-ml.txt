@@ -1,0 +1,4 @@
+# OPTIONAL heavy ML extras (torch based). The app runs without these.
+# pip install -r requirements-ml.txt
+easyocr>=1.7
+ultralytics>=8.1
