@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Secrets
+.env
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploads / generated files
+uploads/
+generated/
+backend/uploads/
+backend/generated/
+
+# ML model files
+*.pt
+*.pth
+*.onnx
+*.joblib
+*.pkl
+
+# Frontend
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
