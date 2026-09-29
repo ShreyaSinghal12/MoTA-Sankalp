@@ -10,20 +10,27 @@ class Settings:
     VERSION = "1.0.0-mvp"
     API_PREFIX = "/api/v1"
 
-    # Switch to PostgreSQL by only setting DATABASE_URL, e.g.
-    # postgresql+psycopg2://mota_user:password@localhost:5432/mota_sankalp
-    DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///" + (BASE_DIR / "mota_sankalp.db").as_posix())
+    DATABASE_URL = os.getenv(
+        "DATABASE_URL",
+        "sqlite:///" + (BASE_DIR / "mota_sankalp.db").as_posix()
+    )
 
     SECRET_KEY = os.getenv("SECRET_KEY", "dev-only-change-me-mota-sankalp-secret")
     ALGORITHM = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "480"))
+    ACCESS_TOKEN_EXPIRE_MINUTES = int(
+        os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "480")
+    )
 
     UPLOAD_DIR = Path(os.getenv("UPLOAD_DIR", str(BASE_DIR / "uploads")))
     GENERATED_DIR = Path(os.getenv("GENERATED_DIR", str(BASE_DIR / "generated")))
     SCHEME_DIR = BASE_DIR / "configs" / "schemes"
     MODEL_DIR = Path(os.getenv("MODEL_DIR", str(BASE_DIR / "models")))
 
-    # auto = EasyOCR if installed, else demo fallback. Values: auto | easyocr | fallback
+    YOLO_CONFIDENCE = 0.25
+    YOLO_IOU = 0.45
+    YOLO_IMGSZ = 640
+    YOLO_DEVICE = "cpu"
+
     OCR_ENGINE = os.getenv("OCR_ENGINE", "auto")
 
     ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".pdf"}
@@ -34,12 +41,14 @@ class Settings:
     PHASH_DUPLICATE_DISTANCE = 4
     INCOME_TOLERANCE = 0.10
 
-    CORS_ORIGINS = ["http://localhost:5173", "http://127.0.0.1:5173"]
+    CORS_ORIGINS = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173"
+    ]
 
     @property
     def DETECTOR_MODEL_PATH(self) -> Path:
         return self.MODEL_DIR / "document_detector.pt"
-
 
 settings = Settings()
 for _p in (settings.UPLOAD_DIR, settings.GENERATED_DIR, settings.GENERATED_DIR / "sanctions",

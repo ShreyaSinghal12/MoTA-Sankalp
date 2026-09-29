@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
 import { getUser, logout } from "../api.js";
 
 export default function Layout({ children }) {
@@ -12,10 +12,11 @@ export default function Layout({ children }) {
           <div className="brand-sub">Scheme Administration, Network &amp; Knowledge Automated Lifecycle Platform</div>
         </div>
         <nav>
-          <NavLink to="/dashboard">Dashboard</NavLink>
-          <NavLink to="/applications">Applications</NavLink>
-          <a href="http://127.0.0.1:8000/docs" target="_blank" rel="noreferrer">API Docs</a>
-        </nav>
+  <NavLink to="/dashboard">Dashboard</NavLink>
+  <NavLink to="/applications">Applications</NavLink>
+  <NavLink to="/documents">Document Analyzer</NavLink>
+  <a href="http://127.0.0.1:8000/docs" target="_blank" rel="noreferrer">API Docs</a>
+</nav>
         <div className="rail-foot">
           <div className="who">{user ? user.full_name : ""}</div>
           <div className="role">{user ? user.role : ""}</div>

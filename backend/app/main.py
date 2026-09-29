@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
 from app.api import applications, auth, dashboard, integrations, officers, schemes, scrutiny
+from app.api.v1.endpoints import documents
 from app.core.config import settings
 from app.db.database import SessionLocal, init_db
 from app.db.seed import seed
@@ -64,5 +65,5 @@ def health():
 
 
 for r in (auth.router, dashboard.router, schemes.router, applications.router, scrutiny.router,
-          officers.router, integrations.router):
+          officers.router, integrations.router, documents.router):
     app.include_router(r, prefix=settings.API_PREFIX)

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { login } from "../api.js";
 
 export default function Login() {
@@ -26,6 +26,7 @@ export default function Login() {
   return (
     <div className="login-wrap">
       <div className="login-art">
+        <Link to="/home" className="login-back">← Back to Home</Link>
         <div className="login-kicker">Ministry of Tribal Affairs | Government of India</div>
         <h1>SANKALP</h1>
         <p>Scholarship and fellowship scrutiny for NFST and NOS. AI extracts, detects, compares and explains. The rule engine checks policy. The officer decides.</p>

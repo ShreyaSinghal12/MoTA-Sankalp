@@ -26,7 +26,7 @@ EXPECTED_ELEMENTS = {
 
 class YOLOService:
     def __init__(self, model_path=None):
-        self.model_path = Path(model_path or settings.YOLO_MODEL_PATH)
+        self.model_path = Path(model_path or settings.DETECTOR_MODEL_PATH)
         self.model = None
         self.load_error = None
 
