@@ -188,3 +188,5 @@ MoTA-Twin, the full approve -> sanction -> PFMS -> audit flow, uploads, and mock
 - Real NSP, DigiLocker, PFMS, DBT, UIDAI (Aadhaar vault + masking), e-Sign
 - Fine-tuned YOLO + bilingual OCR served via ONNX Runtime; local LLM (Ollama) only for wording MoTA-Twin explanations
 - Kubernetes on NIC MeghRaj, Prometheus + Grafana, TLS, DPDP Act 2023 compliance, immutable audit store
+
+#Feel Free to Contribute
