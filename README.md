@@ -137,7 +137,7 @@ GET  /ml/fuzzy?a=..&b=..        GET  /ml/anomaly?...
 
 ## YOLO training (real data, two-stage fine-tuning)
 
-The detector is trained on **real** public data, then fine-tuned on your own annotated certificates.
+The detector is trained on **real** public data, then further fine-tuned on your own annotated certificates.
 No synthetic images are used.
 
 | Class | Source | Notes |
